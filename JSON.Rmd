@@ -1,0 +1,69 @@
+---
+title: "JSON"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r json}
+url <- "https://api.nytimes.com/svc/search/v2/articlesearch.json"
+apikey <- "1691a5817c0c4e50b060e80e5bb18185"
+query <- "sikh"
+page <- 1
+init_request <- paste(url, "?api-key=",apikey,"&q=",query,"&page=",page,sep="")
+#request <- url + "api-key=" + apikey + "&q=" + query + "&page="
+request <- paste(url, "?api-key=",apikey,"&q=",query,"&page=",sep="")
+
+library(stringr)
+library(jsonlite)
+library(rjson)
+
+# Each line is a JSON object- the fastest way to process is to combine into a
+# single JSON string and use fromJSON and flatten
+
+init = rjson::fromJSON(file=init_request)
+hits = init$response$meta$hits
+meta <- init$response$meta
+
+iterations <- ceiling(hits/10)
+iterations
+
+articles_list <- vector("list")
+articles_list <- append(data,init$response$docs)
+#head(data)
+
+#for(i in 1:iterations) change to this to run on all articles
+for(i in 1:3) {
+  temp_req <- paste(request,i,sep="")
+  temp_data <- rjson::fromJSON(file=temp_req)
+  articles_list <- append(articles_list,temp_data$response$docs)
+  Sys.sleep(1)
+}
+#head(articles_list)
+
+len <- length(articles_list)
+len
+#df <- data.frame(matrix(unlist(data), nrow=20, byrow=T))
+#library (plyr)
+#df <- ldply (articles_list, data.frame)
+df <- data.frame(t(sapply(articles_list,c)))
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
